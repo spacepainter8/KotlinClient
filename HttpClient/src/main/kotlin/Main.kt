@@ -1,52 +1,57 @@
 package org.example
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpResponseValidator
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.request
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsBytes
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.headers
-import java.io.InputStream
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URI
+import java.net.URL
 import java.security.MessageDigest
-import java.util.Base64
 import java.util.HexFormat
 
-suspend fun main() {
-    val client = HttpClient(CIO)
 
-    var start: Long = 0
-    var end: Long = 64*1024
+suspend fun main() {
+
+    val url: URL = URI.create("http://127.0.0.1:8080").toURL()
+
+    // Response storage
     var byteArray:ByteArray = ByteArray(0)
-//    var data:String= ""
+    // Defines the chunk of data that's being received, 64*1024 is based on server's code, this way we assure
+    //  data isn't randomized
+    var start:Long = 0
+    var end:Long = 64*1024
 
 
     while(end<=1024*1024){
+        val conn:HttpURLConnection = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        // Range header for only receiving a chunk of data
         val rangeHeader:String = "bytes=$start-$end"
-        val response: HttpResponse = client.get("http://127.0.0.1:8080"){
-            header(HttpHeaders.Range, rangeHeader)
-        }
+        conn.setRequestProperty("Range", rangeHeader)
+        val responseCode = conn.responseCode
+        val lenBefore = byteArray.size
+        if (responseCode == 200 || responseCode == 206) {
+            conn.inputStream.use {
+                byteArray += it.readBytes()
+            }
+        } else println(responseCode)
 
-
-        if (!response.body<String>().isEmpty()) {
-            byteArray += response.bodyAsBytes()
-//            data += response.body<String>()
+        // this condition checks whether there was new data added
+        if (lenBefore == byteArray.size) break
+        else {
             start += 64*1024
             end += 64*1024
-        } else break
+        }
+        conn.disconnect()
     }
 
+    // SHA-256 hashing
     val md = MessageDigest.getInstance("SHA-256")
     val digest = md.digest(byteArray)
     val hex = HexFormat.of().formatHex(digest)
-    println(hex == "b48fb3c1d1f0f24741a79f703004f58a1afd04320392e8d0a4d3a5dd9de00a31")
 
-//    print(byteArray.size)
+    println("Computed hash is: $hex")
+    // Replace the String with the SHA-256 hash value that the server outputted
+    println(hex == "f173d3b198847616126c5a259139b59228e0a23436550d2b7a13fb869b028a72")
+
+
 }
