@@ -51,7 +51,7 @@ suspend fun main() {
 
     println("Computed hash is: $hex")
     // Replace the String with the SHA-256 hash value that the server outputted
-    println(hex == "f173d3b198847616126c5a259139b59228e0a23436550d2b7a13fb869b028a72")
+    println(hex == "034597fb047a9160d30bde559ea0962a68b5a904b5fa7e5335f8eeb01f453849")
 
 
 }
