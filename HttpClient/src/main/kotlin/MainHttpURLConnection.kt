@@ -1,7 +1,5 @@
 package org.example
 
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
@@ -9,7 +7,7 @@ import java.security.MessageDigest
 import java.util.HexFormat
 
 
-suspend fun main() {
+fun main() {
 
     val url: URL = URI.create("http://127.0.0.1:8080").toURL()
 
