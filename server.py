@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 class BuggyHandler(BaseHTTPRequestHandler):
-    data = random.randbytes(random.randint(1024 * 1024, 1024 * 1024))
+    data = random.randbytes(random.randint(512 * 1024, 1024 * 1024))
 
     def do_GET(self):
         data = self.data
